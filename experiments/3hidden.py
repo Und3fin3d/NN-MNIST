@@ -26,9 +26,9 @@ train_images = train_images / 255
 def init_parameters():
     w1 = np.random.randn(10, 784) * np.sqrt(2 / 784)
     b1 = np.zeros((10, 1))
-    w2 = np.random.randn(10, 10) * np.sqrt(2 / 10)
-    b2 = np.zeros((10, 1))
-    w3 = np.random.randn(10, 10) * np.sqrt(2 / 10)
+    w2 = np.random.randn(20, 10) * np.sqrt(2 / 10)
+    b2 = np.zeros((20, 1))
+    w3 = np.random.randn(10, 20) * np.sqrt(2 / 20)
     b3 = np.zeros((10, 1))
     w4 = np.random.randn(10, 10) * np.sqrt(2 / 10)
     b4 = np.zeros((10, 1))
@@ -47,7 +47,7 @@ def forward_propagation(w1, b1, w2, b2, w3, b3, w4, b4, a0):
     z2 = w2.dot(a1) + b2
     a2 = ReLU(z2)
     z3 = w3.dot(a2) + b3
-    a3 = softmax(z3)
+    a3 = ReLU(z3)
     z4 = w4.dot(a3) + b4
     a4 = softmax(z4)
     return z1, a1, z2, a2, z3, a3, z4, a4
@@ -91,7 +91,7 @@ def predict(a4):
     return np.argmax(a4, 0)
 
 def output(a0, w1, b1, w2, b2, w3, b3, w4, b4):
-    _,_,_,_, _, _, a4 = forward_propagation(w1, b1, w2, b2, w3, b3, w4, b4, a0)
+    _,_,_,_,_,_,_, a4 = forward_propagation(w1, b1, w2, b2, w3, b3, w4, b4, a0)
     return a4
 
 def accuracy(predictions, y):

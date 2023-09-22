@@ -37,11 +37,11 @@ def softmax(x):
     return z
     
 def forward_propagation(w1, w2, w3, a0):
-    z1 = w1.dot(a0)
+    z1 = np.matmul(w1,a0)
     a1 = ReLU(z1)
-    z2 = w2.dot(a1)
+    z2 = np.matmul(w2,a1)
     a2 = ReLU(z2)
-    z3 = w3.dot(a2)
+    z3 = np.matmul(w3,a2)
     a3 = softmax(z3)
     return z1, a1, z2, a2, z3, a3
 
@@ -56,11 +56,11 @@ def one_hot(label):
 
 def backward_propagation(z1, a1, z2, a2, a3, w2, w3, a0, y):
     dC_dz3 = a3 - y
-    dC_dw3 = 1 / n  * dC_dz3.dot(a2.T) 
-    dC_dz2 = w3.T.dot(dC_dz3) * ReLU_deriv(z2)
-    dC_dw2 = 1 / n  * dC_dz2.dot(a1.T)
-    dC_dz1 = w2.T.dot(dC_dz2) * ReLU_deriv(z1)
-    dC_dw1 = 1 / n  * dC_dz1.dot(a0.T)
+    dC_dw3 = 1 / n  * np.matmul(dC_dz3,a2.T)
+    dC_dz2 = np.matmul(w3.T,dC_dz3) * ReLU_deriv(z2)
+    dC_dw2 = 1 / n  * np.matmul(dC_dz2, a1.T)
+    dC_dz1 = np.matmul(w2.T, dC_dz2) * ReLU_deriv(z1)
+    dC_dw1 = 1 / n  * np.matmul(dC_dz1,a0.T)
     return dC_dw1,dC_dw2,dC_dw3
 
 def update_parameters(w1, w2, w3, dC_dw1, dC_dw2, dC_dw3, alpha):
@@ -95,55 +95,43 @@ def gradient_descent(a0, y, alpha, iterations):
         accuracy_history.append(acc)
         time_history.append(time.perf_counter()-start)
         if i % 10 == 0:
-            print("Epoch: ", i)
+            print("Iteration: ", i)
             print("Loss:",loss)
             print("Accuracy:", acc)
     return w1, w2, w3
 
 
-
-def test(i, w1, w2, w3):
-    if i!='r':
-        current_image = test_images[:, i,None]#change to test
-        label = test_labels[i]
-        prediction = predict(output(current_image, w1, w2, w3))[0]
-    else:
-        current_image = np.random.rand(784,1)
-        label = 'Null test'
-        prediction = np.round(output(current_image, w1, w2, w3),3).flatten()
-        prediction = str(max(prediction))
-    current_image = current_image.reshape((28, 28)) * 255
-    plt.gray()
-    plt.imshow(current_image)
-    plt.title(f"Prediction: {prediction}, Labeled: {label}")
-    plt.show()   
-w1, w2, w3 = gradient_descent(train_images, one_hot(train_labels), 0.1, int(input("Iterations: ")))    
+w1,w2, w3 = gradient_descent(train_images, one_hot(train_labels), 0.1,2000)    
 plt.plot(loss_history)
-plt.title('Loss during training')
-plt.xlabel('Epoch')
+plt.title('Loss during training, no biases')
+plt.xlabel('Iteration')
 plt.ylabel('Loss')
-plt.show()
+plt.savefig('lossnb.png')
+plt.clf()
 plt.plot(accuracy_history)
-plt.title('Accuracy during training')
-plt.xlabel('Epoch')
+plt.title('Accuracy during training, no biases')
+plt.xlabel('Iteration')
 plt.ylabel('Accuracy')
-plt.show()
-
+plt.savefig('Accuracynb.png')
+plt.clf()
 plt.plot(time_history,loss_history)
-plt.title('Loss during training')
+plt.title('Loss during training, no biases')
 plt.xlabel('Seconds')
 plt.ylabel('Loss')
-plt.show()
-
+plt.savefig('Losstimenb.png')
+plt.clf()
 plt.plot(time_history,accuracy_history)
-plt.title('Accuracy during training')
+plt.title('Accuracy during training, no biases')
 plt.xlabel('Seconds')
 plt.ylabel('Accuracy')
-plt.show()  
-for i in range(10):
-    test(i, w1, w2, w3)
-for i in range(5):
-    test('r',w1, w2, w3)
+plt.savefig('Accuracytimenb.png')
 
-unseen = predict(output( test_images,w1, w2, w3))
-print("Final Score on unseen images:",accuracy(unseen, test_labels))
+
+np.save('w1.npy', w1)
+np.save('w2.npy', w2)
+np.save('w3.npy', w3)
+
+unseen = predict(output(test_images,w1, w2, w3))
+with open("Results.txt","w") as f:
+    f.write("No biases " + str(accuracy(unseen, test_labels)))
+    

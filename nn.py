@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 import time
-
+from matplotlib import pyplot as plt
 
 data = pd.read_csv('train.csv')
 
@@ -38,11 +37,11 @@ def softmax(x):
     return z
     
 def forward_propagation(w1, b1, w2, b2, w3, b3, a0):
-    z1 = w1.dot(a0) + b1
+    z1 = np.matmul(w1,a0) + b1
     a1 = ReLU(z1)
-    z2 = w2.dot(a1) + b2
+    z2 = np.matmul(w2,a1) + b2
     a2 = ReLU(z2)
-    z3 = w3.dot(a2) + b3
+    z3 = np.matmul(w3,a2) + b3
     a3 = softmax(z3)
     return z1, a1, z2, a2, z3, a3
 
@@ -61,19 +60,20 @@ def backward_propagation(z1, a1, z2, a2, a3, w2, w3, a0, y):
     dC_dz3 = a3 - y
     #as we have forward propagated the whole dataset we normalize it by 1/n to make sure the weights are not too big
     #note dz3/dw3 = a2, which is why it is multiplied with dC/dz3 to get dC/dw3
-    dC_dw3 = 1 / n  * dC_dz3.dot(a2.T) #.dot is matrix multiplaction
+    dC_dw3 = 1 / n  * np.matmul(dC_dz3,a2.T)
     dC_db3 = 1 / n  * np.sum(dC_dz3)#note for biases we take sum as they are not matrices
     #dC/dz2 = dC/dz3 x dz3/da2 x da2/dz2
     #dC/dz2 = dC/dz3 x w3 x reLu'(z2)
-    dC_dz2 = w3.T.dot(dC_dz3) * ReLU_deriv(z2)
+    dC_dz2 = np.matmul(w3.T,dC_dz3) * ReLU_deriv(z2)
     #dC/dw2 = dC/dz2 x dz2/dw2
     #dC/dw2 = dC/dz2 x a1 
-    dC_dw2 = 1 / n  * dC_dz2.dot(a1.T)
+    dC_dw2 = 1 / n  * np.matmul(dC_dz2, a1.T)
     dC_db2 = 1 / n  * np.sum(dC_dz2)
     #dC/dz1 = dC/dz2 x dz2/da1 x da1/dz1
     #dC/dz2 = dC/dz2 x w2 x reLu'(z1)
-    dC_dz1 = w2.T.dot(dC_dz2) * ReLU_deriv(z1)
-    dC_dw1 = 1 / n  * dC_dz1.dot(a0.T)
+    
+    dC_dz1 = np.matmul(w2.T, dC_dz2) * ReLU_deriv(z1)
+    dC_dw1 = 1 / n  * np.matmul(dC_dz1,a0.T)
     dC_db1 = 1 / n  * np.sum(dC_dz1)
     return dC_dw1, dC_db1, dC_dw2, dC_db2, dC_dw3, dC_db3
 
@@ -105,7 +105,7 @@ def gradient_descent(a0, y, alpha, iterations):
         dw1, db1, dw2, db2, dw3, db3 = backward_propagation(z1, a1, z2, a2, a3, w2, w3, a0, y)
         w1, b1, w2, b2, w3, b3 = update_parameters(w1, b1, w2, b2, w3, b3, dw1, db1, dw2, db2, dw3, db3, alpha)
         if i % 10 == 0:
-            print("Epoch: ", i)
+            print("Iteration: ", i)
             print("Loss:",cross_entropy_loss(a3,y))
             print("Accuracy:", accuracy(predict(a3), predict(y)))
     return w1, b1, w2, b2, w3, b3
@@ -129,7 +129,7 @@ def test(i, w1, b1, w2, b2, w3, b3):
     plt.title(f"Prediction: {prediction}, Labeled: {label}")
     plt.show()
 
-
+"""
 start = time.perf_counter()    
 w1, b1, w2, b2, w3, b3 = gradient_descent(train_images, one_hot(train_labels), 0.1, int(input("Iterations: ")))
 np.save('w1.npy', w1)
@@ -148,3 +148,4 @@ for i in range(5):
 unseen = predict(output( test_images,w1, b1, w2, b2, w3, b3))
 print("Final Score on unseen images:",accuracy(unseen, test_labels))
 
+"""

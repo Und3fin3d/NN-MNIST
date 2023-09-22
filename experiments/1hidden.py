@@ -24,9 +24,9 @@ train_images = train[1:]
 train_images = train_images / 255
 
 def init_parameters():
-    w1 = np.random.randn(784, 784) * np.sqrt(2 / 784)
+    w1 = np.random.randn(20, 784) * np.sqrt(2 / 784)
     b1 = np.zeros((20, 1))
-    w2 = np.random.randn(20, 784) * np.sqrt(2 / 20)
+    w2 = np.random.randn(10, 20) * np.sqrt(2 / 20)
     b2 = np.zeros((10, 1))
     return w1, b1, w2, b2
 
@@ -38,9 +38,9 @@ def softmax(x):
     return z
     
 def forward_propagation(w1, b1, w2, b2, a0):
-    z1 = w1.dot(a0) + b1
+    z1 = np.matmul(w1,a0) + b1
     a1 = ReLU(z1)
-    z2 = w2.dot(a1) + b2
+    z2 = np.matmul(w2,a1) + b2
     a2 = softmax(z2)
     return z1, a1, z2, a2
 
@@ -55,10 +55,10 @@ def one_hot(label):
 
 def backward_propagation(z1, a1, z2, a2, w2, a0, y):
     dC_dz2 = a2 - y
-    dC_dw2 = 1 / n  * dC_dz2.dot(a1.T)
+    dC_dw2 = 1 / n  * np.matmul(dC_dz2,a1.T)
     dC_db2 = 1 / n  * np.sum(dC_dz2)
-    dC_dz1 = w2.T.dot(dC_dz2) * ReLU_deriv(z1)
-    dC_dw1 = 1 / n  * dC_dz1.dot(a0.T)
+    dC_dz1 = np.matmul(w2.T,dC_dz2) * ReLU_deriv(z1)
+    dC_dw1 = 1 / n  *  np.matmul(dC_dz1,a0.T)
     dC_db1 = 1 / n  * np.sum(dC_dz1)
     return dC_dw1, dC_db1, dC_dw2, dC_db2
 
@@ -95,55 +95,39 @@ def gradient_descent(a0, y, alpha, iterations):
         accuracy_history.append(acc)
         time_history.append(time.perf_counter()-start)
         if i % 10 == 0:
-            print("Epoch: ", i)
+            print("Iteration: ", i)
             print("Loss:",loss)
             print("Accuracy:", acc)
     return w1, b1, w2, b2
 
 
 
-def test(i, w1, b1, w2, b2):
-    if i!='r':
-        current_image = test_images[:, i,None]
-        label = test_labels[i]
-        prediction = predict(output(current_image, w1, b1, w2, b2))[0]
-    else:
-        current_image = np.random.rand(784,1)
-        label = 'Null test'
-        prediction = np.round(output(current_image, w1, b1, w2, b2),3).flatten()
-        prediction = str(max(prediction))
-    current_image = current_image.reshape((28, 28)) * 255
-    plt.gray()
-    plt.imshow(current_image)
-    plt.title(f"Prediction: {prediction}, Labeled: {label}")
-    plt.show()   
-w1, b1, w2, b2 = gradient_descent(train_images, one_hot(train_labels), 0.1, int(input("Iterations: ")))    
+w1, b1, w2, b2 = gradient_descent(train_images, one_hot(train_labels), 0.1,2000)    
 plt.plot(loss_history)
-plt.title('Loss during training')
-plt.xlabel('Epoch')
+plt.title('Loss during training, 1 hidden layer')
+plt.xlabel('Iteration')
 plt.ylabel('Loss')
-plt.show()
+plt.savefig('loss1h.png')
+plt.clf()
 plt.plot(accuracy_history)
-plt.title('Accuracy during training')
-plt.xlabel('Epoch')
+plt.title('Accuracy during training, 1 hidden layer')
+plt.xlabel('Iteration')
 plt.ylabel('Accuracy')
-plt.show()
-
+plt.savefig('Accuracy1h.png')
+plt.clf()
 plt.plot(time_history,loss_history)
-plt.title('Loss during training')
+plt.title('Loss during training, 1 hidden layer')
 plt.xlabel('Seconds')
 plt.ylabel('Loss')
-plt.show()
-
+plt.savefig('Losstime1h.png')
+plt.clf()
 plt.plot(time_history,accuracy_history)
-plt.title('Accuracy during training')
+plt.title('Accuracy during training, 1 hidden layer')
 plt.xlabel('Seconds')
 plt.ylabel('Accuracy')
-plt.show()  
-for i in range(10):
-    test(i, w1, b1, w2, b2)
-for i in range(5):
-    test('r',w1, b1, w2, b2)
+plt.savefig('Accuracytime1h.png')
 
-unseen = predict(output( test_images,w1, b1, w2, b2))
-print("Final Score on unseen images:",accuracy(unseen, test_labels))
+
+unseen = predict(output(test_images,w1, b1, w2, b2))
+with open("Results.txt","w") as f:
+    f.write("1 Hidden " + str(accuracy(unseen, test_labels)))

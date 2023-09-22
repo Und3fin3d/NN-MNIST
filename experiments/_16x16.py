@@ -24,33 +24,32 @@ train_images = train[1:]
 train_images = train_images / 255
 
 def init_parameters():
-    w1 = np.random.randn(20, 784) * np.sqrt(2 / 784)
-    b1 = np.zeros((20, 1))
-    w2 = np.random.randn(10, 20) * np.sqrt(2 / 20)
-    b2 = np.zeros((10, 1))
-    w3 = np.random.randn(10, 10) * np.sqrt(2 / 10)
+    w1 = np.random.randn(16, 784) * np.sqrt(2 / 784)
+    b1 = np.zeros((16, 1))
+    w2 = np.random.randn(16, 16) * np.sqrt(2 / 16)
+    b2 = np.zeros((16, 1))
+    w3 = np.random.randn(10, 16) * np.sqrt(2 / 16)
     b3 = np.zeros((10, 1))
     return w1, b1, w2, b2, w3, b3
 
-def Sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-    return 1/(1+np.power(np.e,-z))
+def ReLU(x):
+    return np.maximum(x, 0)
 
 def softmax(x):
-    z = np.exp(x) / sum(np.exp(x))
-    return z
+    A = np.exp(x) / sum(np.exp(x))
+    return A
     
 def forward_propagation(w1, b1, w2, b2, w3, b3, a0):
     z1 = np.matmul(w1,a0) + b1
-    a1 = Sigmoid(z1)
+    a1 = ReLU(z1)
     z2 = np.matmul(w2,a1) + b2
-    a2 = Sigmoid(z2)
+    a2 = ReLU(z2)
     z3 = np.matmul(w3,a2) + b3
     a3 = softmax(z3)
     return z1, a1, z2, a2, z3, a3
 
-def Sigmoid_deriv(x):
-    return np.exp(-x) / (1 + np.exp(-x))**2
+def ReLU_deriv(x):
+    return x > 0
 
 def one_hot(label):
     y = np.zeros((label.size, label.max() + 1))
@@ -60,13 +59,13 @@ def one_hot(label):
 
 def backward_propagation(z1, a1, z2, a2, a3, w2, w3, a0, y):
     dC_dz3 = a3 - y
-    dC_dw3 = 1 / n  * dC_dz3.dot(a2.T)
+    dC_dw3 = 1 / n  * np.matmul(dC_dz3,a2.T)
     dC_db3 = 1 / n  * np.sum(dC_dz3)
-    dC_dz2 = w3.T.dot(dC_dz3) * Sigmoid_deriv(z2)
-    dC_dw2 = 1 / n  * dC_dz2.dot(a1.T)
+    dC_dz2 = np.matmul(w3.T,dC_dz3) * ReLU_deriv(z2)
+    dC_dw2 = 1 / n  * np.matmul(dC_dz2, a1.T)
     dC_db2 = 1 / n  * np.sum(dC_dz2)
-    dC_dz1 = w2.T.dot(dC_dz2) * Sigmoid_deriv(z1)
-    dC_dw1 = 1 / n  * dC_dz1.dot(a0.T)
+    dC_dz1 = np.matmul(w2.T, dC_dz2) * ReLU_deriv(z1)
+    dC_dw1 = 1 / n  * np.matmul(dC_dz1,a0.T)
     dC_db1 = 1 / n  * np.sum(dC_dz1)
     return dC_dw1, dC_db1, dC_dw2, dC_db2, dC_dw3, dC_db3
 
@@ -106,38 +105,39 @@ def gradient_descent(a0, y, alpha, iterations):
         time_history.append(time.perf_counter()-start)
         if i % 10 == 0:
             print("Iteration: ", i)
-            print("Loss:",loss)
+            print("Loss:",cross_entropy_loss(a3,y))
             print("Accuracy:", acc)
     return w1, b1, w2, b2, w3, b3
 
 
 
+
 w1, b1, w2, b2, w3, b3 = gradient_descent(train_images, one_hot(train_labels), 0.1,2000)    
 plt.plot(loss_history)
-plt.title('Loss during training, sigmoid')
+plt.title('Loss during training')
 plt.xlabel('Iteration')
 plt.ylabel('Loss')
-plt.savefig('losssig.png')
+plt.savefig('loss.png')
 plt.clf()
 plt.plot(accuracy_history)
-plt.title('Accuracy during training, sigmoid')
+plt.title('Accuracy during training')
 plt.xlabel('Iteration')
 plt.ylabel('Accuracy')
-plt.savefig('Accuracysig.png')
+plt.savefig('Accuracy.png')
 plt.clf()
 plt.plot(time_history,loss_history)
-plt.title('Loss during training, sigmoid')
+plt.title('Loss during training')
 plt.xlabel('Seconds')
 plt.ylabel('Loss')
-plt.savefig('Losstimesig.png')
+plt.savefig('Losstime.png')
 plt.clf()
 plt.plot(time_history,accuracy_history)
-plt.title('Accuracy during training, sigmoid')
+plt.title('Accuracy during training')
 plt.xlabel('Seconds')
 plt.ylabel('Accuracy')
-plt.savefig('Accuracytimesig.png')
+plt.savefig('Accuracytime.png')
 
 
 unseen = predict(output(test_images,w1, b1, w2, b2, w3, b3))
 with open("Results.txt","w") as f:
-    f.write("Sigmoid " + str(accuracy(unseen, test_labels)))
+    f.write("Normal " + str(accuracy(unseen, test_labels)))

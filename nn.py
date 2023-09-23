@@ -3,8 +3,8 @@ import pandas as pd
 import time
 from matplotlib import pyplot as plt
 
-data = pd.read_csv('train.csv')
-
+#data = pd.read_csv('train.csv')
+data = np.zeros((784,4100))
 data = np.array(data)
 n, i = data.shape
 np.random.shuffle(data)

@@ -22,11 +22,12 @@ class Recogniser:
             white = (255, 255, 255)
             dark_white = (50, 50, 50)
             mask = cv2.inRange(self.frame, dark_white, white)
+            
             self.frame = cv2.bitwise_and(self.frame, self.frame, mask=mask)
             self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-            lower_thres = 150
-            thresh, self.frame = cv2.threshold(self.frame, lower_thres, 255, cv2.THRESH_BINARY)
-            cv2.imshow("frame", self.colour_frame)
+            lower_thres = 80
+            thresh, self.frame = cv2.threshold(self.frame, lower_thres, 255, cv2.THRESH_BINARY_INV)
+            cv2.imshow("frame", self.frame)
             if cv2.waitKey(1) & 0xFF == 32:
                 print("Frozen!")
                 self.f0 = self.colour_frame
@@ -57,9 +58,9 @@ while True:
     while frame.any() == None:
         frame = recogniser.final
     frame = frame /  255
-    frame = 1- frame
     height, width = frame.shape
     data = np.average(np.split(np.average(np.split(frame, width // (height//20), axis=1), axis=-1), height//(height//20), axis=1), axis=-1)
+    data = np.ceil(data)
     drawn_image = np.pad(data,[(4,4),(4,4)],mode='constant')
     image = drawn_image.reshape((784, 1))
     prob = output(image,w1, b1, w2, b2, w3, b3)
